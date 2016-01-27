@@ -64,19 +64,26 @@ cv::Mat convertNativeToMat(image<rgb>* input){
     return output;
 }
 
-cv::Mat runEgbisOnMat(const cv::Mat& input, float sigma, float k, int min_size, int *numccs) {
+cv::Mat runEgbisOnMat(const cv::Mat& input, const cv::Mat& cutMatrix, float sigma, float k, int min_size, int *numccs) {
     int w = input.cols;
     int h = input.rows;
 	cv::Mat output(cv::Size(w,h),CV_8UC3);
 
     // 1. Convert to native format
     image<rgb> *nativeImage = convertMatToNativeImage(input);
+    image<rgb> *cutImage = convertMatToNativeImage(cutMatrix);
+
     // 2. Run egbis algoritm
     image<rgb> *segmentedImage = segment_image(nativeImage, sigma, k, min_size, numccs);
     // 3. Convert back to Mat format
     output = convertNativeToMat(segmentedImage);
 
+    cv::Mat cutVis;
+    cutVis = convertNativeToMat(cutImage);
+    cv::imshow("In egbis", cutVis);
+
 	delete nativeImage;
+    delete cutImage;
 	delete segmentedImage;
     return output;
 }

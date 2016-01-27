@@ -25,5 +25,5 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 /****
  * OpenCV C++ Wrapper using the Mat class
  ***/
-cv::Mat runEgbisOnMat(const cv::Mat& input, float sigma, float k, int min_size, int *numccs);
+cv::Mat runEgbisOnMat(const cv::Mat& input, const cv::Mat& cutMatrix, float sigma, float k, int min_size, int *numccs);
 #endif

@@ -8,6 +8,7 @@ LIBS += -lopencv_flann -lopencv_gpu -lopencv_highgui -lopencv_imgproc -lopencv_l
 LIBS += -lopencv_nonfree -lopencv_objdetect -lopencv_ocl -lopencv_photo -lopencv_stitching -lopencv_superres
 LIBS += -lopencv_ts -lopencv_video -lopencv_videostab -ltbb
 LIBS += -lGL -lGLU -lrt -lpthread -lm -ldl
+LIBS += -lboost_system -lboost_filesystem
 INCLUDEPATH +=  -I/usr/include/opencv -I/usr/include/opencv2/
 
 
@@ -39,4 +40,5 @@ HEADERS += \
     egbis/segment-graph.h \
     egbis/segment-image.h \
     egbis.h \
-    nkhUtil.h
+    nkhUtil.h \
+    egbiscv.h
