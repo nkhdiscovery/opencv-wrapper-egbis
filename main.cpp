@@ -22,6 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include "egbis.h"
 
 #include <opencv2/core/core.hpp>
@@ -149,22 +150,29 @@ int main(int argc, char **argv) {
 
     img = imread( argv[1], CV_LOAD_IMAGE_COLOR );
 
+    float sigma = atof(argv[2]);
+    float k = atof(argv[3]);
+    int min_size = atoi(argv[4]);
     if( !img.data )
     {
         cout << "Could not open or find the image." << std::endl;
         return -1;
     }
 
-
-    imageName = argv[1];
+//    imageName = argv[1];
     // Create the first EGBIS version with standard values.
     // TODO: Set this input values to match the ones define in global scope
-    egbisImage = runEgbisOnMat(img, 0.5, 500, 200, &num_ccs);
+    //egbisImage = runEgbisOnMat(img, 0.5, 500, 200, &num_ccs);
 
     // 4. Present image
-    namedWindow( imageName , CV_WINDOW_AUTOSIZE );
-    imshow( imageName , img );
+    imshow( "imageName" , img );
 
+    cout << k << " , " << min_size << endl ;
+    egbisImage = runEgbisOnMat(img, sigma, k, min_size, &num_ccs);
+    // Change image shown
+    imshow( "EGBIS", egbisImage);
+
+    /*
     // TODO: Change to C++ method
     // http://docs.opencv.org/modules/highgui/doc/user_interface.html#createtrackbar
     cvCreateTrackbar("Sigma [x/10]",imageName, &sigma_switch_value, sigma_switch_high, switch_callback_sigma);
