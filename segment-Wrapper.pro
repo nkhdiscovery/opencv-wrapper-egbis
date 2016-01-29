@@ -17,28 +17,10 @@ QMAKE_CXXFLAGS += -std=c++11
 QMAKE_CXXFLAGS += -std=c++11 -Wall -O3
 QMAKE_LFLAGS += -fopenmp -pthread
 
-SOURCES += main.cpp \
-    egbis/disjoint-set.cpp \
-    egbis/filter.cpp \
-    egbis/misc.cpp \
-    egbis/segment-graph.cpp \
-    egbis/segment-image.cpp \
-    egbis/segment.cpp \
-    egbis.cpp
+SOURCES += main.cpp
 
 DISTFILES +=
 
 HEADERS += \
-    egbis/convolve.h \
-    egbis/disjoint-set.h \
-    egbis/filter.h \
-    egbis/image.h \
-    egbis/imconv.h \
-    egbis/imutil.h \
-    egbis/misc.h \
-    egbis/pnmfile.h \
-    egbis/segment-graph.h \
-    egbis/segment-image.h \
-    egbis.h \
     nkhUtil.h \
     egbiscv.h

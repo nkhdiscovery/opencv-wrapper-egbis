@@ -41,9 +41,9 @@ Mat egbisImage;
 Mat img;
 char* imageName;
 int num_ccs;
-void nkhSeg(Ptr<GraphSegmentationImpl> segPtr, cv::Mat& img, cv::Mat& egbisSeg)
+void nkhSeg(Ptr<GraphSegmentationImpl> segPtr, cv::Mat& img, cv::Mat& cutMatrix, cv::Mat& egbisSeg)
 {
-    segPtr->processImage(img, egbisSeg);
+    segPtr->processImage(img, cutMatrix, egbisSeg);
 }
 
 int main(int argc, char **argv) {
@@ -70,16 +70,15 @@ int main(int argc, char **argv) {
     int delta = 0;
     int ddepth = CV_16S;
     /// Gradient X
-    //Scharr( src_gray, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
-    Sobel( img, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
+    Sobel( grayImg, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT );
     convertScaleAbs( grad_x, abs_grad_x );
     /// Gradient Y
-    //Scharr( src_gray, grad_y, ddepth, 0, 1, scale, delta, BORDER_DEFAULT );
-    Sobel( img, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
+    Sobel( grayImg, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT );
     convertScaleAbs( grad_y, abs_grad_y );
 
     /// Total Gradient (approximate)
     addWeighted( abs_grad_x, 0.5, abs_grad_y, 0.5, 0, edgeImg );
+//    threshold(edgeImg, edgeImg, 100, 255, CV_THRESH_BINARY);
 
     imshow( "imageName" , edgeImg );
     imshow( "Orig" , img );
@@ -88,12 +87,11 @@ int main(int argc, char **argv) {
 //    egbisImage = measure<chrono::milliseconds>(runEgbisOnMat, img, edgeImg, sigma, k, min_size, &num_ccs);
     cv::Mat egbisSeg;
     Ptr<GraphSegmentationImpl> segPtr = createGraphSegmentation(sigma, k, min_size);
-    measure<chrono::milliseconds>(nkhSeg, segPtr, img, egbisSeg);
+    measure<chrono::milliseconds>(nkhSeg, segPtr, img, edgeImg, egbisSeg);
     measure<chrono::milliseconds>(egbisVisualise, egbisSeg, egbisImage);
 
     // Change image shown
     imshow( "EGBIS", egbisImage);
-
     waitKey(0);
 
     return 0;

@@ -5,6 +5,8 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/contrib/contrib.hpp>
 #include <iostream>
+#include <stdlib.h>
+#include <time.h>
 using namespace cv;
 using namespace std;
 
@@ -99,7 +101,7 @@ public:
     ~GraphSegmentationImpl() {
     };
 
-    virtual void processImage(InputArray src, OutputArray dst);
+    virtual void processImage(InputArray src, Mat &prun, OutputArray dst);
 
     virtual void setSigma(double sigma_) { if (sigma_ <= 0) { sigma_ = 0.001; } sigma = sigma_; }
     virtual double getSigma() { return sigma; }
@@ -135,7 +137,7 @@ private:
     void filter(const Mat &img, Mat &img_filtered);
 
     // Build the graph between each pixels
-    void buildGraph(Edge **edges, int &nb_edges, const Mat &img_filtered);
+    void buildGraph(Edge **edges, int &nb_edges, const Mat &prun, const Mat &img_filtered);
 
     // Segment the graph
     void segmentGraph(Edge * edges, const int &nb_edges, const Mat & img_filtered, PointSet **es);
@@ -158,16 +160,18 @@ void GraphSegmentationImpl::filter(const Mat &img, Mat &img_filtered) {
     GaussianBlur(img_converted, img_filtered, Size(0, 0), sigma, sigma);
 }
 
-void GraphSegmentationImpl::buildGraph(Edge **edges, int &nb_edges, const Mat &img_filtered) {
+void GraphSegmentationImpl::buildGraph(Edge **edges, int &nb_edges, const Mat &prun, const Mat &img_filtered) {
 
     *edges = new Edge[img_filtered.rows * img_filtered.cols * 4];
 
+    srand(time(NULL));
     nb_edges = 0;
-
+    int counter = 0;
     int nb_channels = img_filtered.channels();
 
     for (int i = 0; i < (int)img_filtered.rows; i++) {
         const float* p = img_filtered.ptr<float>(i);
+        const uchar* ptrPrun = prun.ptr<uchar>(i);
 
         for (int j = 0; j < (int)img_filtered.cols; j++) {
 
@@ -179,7 +183,16 @@ void GraphSegmentationImpl::buildGraph(Edge **edges, int &nb_edges, const Mat &i
                     int j2 = j + delta * delta_j;
 
                     if (i2 >= 0 && i2 < img_filtered.rows && j2 >= 0 && j2 < img_filtered.cols) {
+
                         const float* p2 = img_filtered.ptr<float>(i2);
+                        const uchar* ptr2Prun = prun.ptr<uchar>(i2);
+                        //pruning matrix condition check
+//                        cout << (int)ptrPrun[j] <<" , " <<(int)ptr2Prun[j2] << endl ;
+//                        if( rand() % 7 && ptrPrun[j] >0 && ptr2Prun[j2] > 0)
+//                        if( p[j * + channel] - p2[j2 * nb_channels + channel])
+//                        {
+//                            continue;
+//                        }
 
                         float tmp_total = 0;
 
@@ -190,16 +203,21 @@ void GraphSegmentationImpl::buildGraph(Edge **edges, int &nb_edges, const Mat &i
                         float diff = 0;
                         diff = sqrt(tmp_total);
 
+                        if(rand() % 50 < diff) continue;
+
                         (*edges)[nb_edges].weight = diff;
                         (*edges)[nb_edges].from = i * img_filtered.cols +  j;
                         (*edges)[nb_edges].to = i2 * img_filtered.cols + j2;
 
                         nb_edges++;
                     }
+
+                    counter++;
                 }
             }
         }
     }
+    cout << nb_edges << endl;
 }
 
 void GraphSegmentationImpl::segmentGraph(Edge *edges, const int &nb_edges, const Mat &img_filtered, PointSet **es) {
@@ -293,7 +311,7 @@ void GraphSegmentationImpl::finalMapping(PointSet *es, Mat &output) {
     free(mapped_id);
 }
 
-void GraphSegmentationImpl::processImage(InputArray src, OutputArray dst) {
+void GraphSegmentationImpl::processImage(InputArray src, cv::Mat& prun, OutputArray dst) {
 
     Mat img = src.getMat();
 
@@ -309,7 +327,7 @@ void GraphSegmentationImpl::processImage(InputArray src, OutputArray dst) {
     Edge *edges;
     int nb_edges;
 
-    buildGraph(&edges, nb_edges, img_filtered);
+    buildGraph(&edges, nb_edges, prun, img_filtered);
 
     // Segment graph
     PointSet *es;
@@ -338,7 +356,7 @@ Ptr<GraphSegmentationImpl> createGraphSegmentation(double sigma, float k, int mi
     return graphseg;
 }
 
-void egbisVisualise(cv::Mat &egbisImage, cv::Mat& visualEgbis)
+int egbisVisualise(cv::Mat &egbisImage, cv::Mat& visualEgbis)
 {
     double min, max;
     cv::minMaxLoc(egbisImage, &min, &max);
@@ -351,8 +369,8 @@ void egbisVisualise(cv::Mat &egbisImage, cv::Mat& visualEgbis)
     visualEgbis = cv::Mat::zeros(egbisImage.rows, egbisImage.cols, CV_8UC3);
     cv::merge(channs, 3, visualEgbis);
     cvtColor(visualEgbis, visualEgbis, COLOR_HSV2RGB);
-    return;
-    //        std::cout << nb_segs << " segments" << std::endl;
+    std::cout << nb_segs << " segments" << std::endl;
+    return nb_segs;
 //    visualEgbis = cv::Mat::zeros(egbisImage.rows, egbisImage.cols, CV_8UC3);
 //    uint* p;
 //    uchar* p2;
